@@ -13,13 +13,17 @@ var (
 	h3     = regexp.MustCompile(`^### (.*)`)
 	h2     = regexp.MustCompile(`^## (.*)`)
 	h1     = regexp.MustCompile(`^# (.*)`)
+	list   = regexp.MustCompile(`^\* (.*)`)
 	quote  = regexp.MustCompile(`^> (.*)`)
 	anchor = regexp.MustCompile(`^\[(.*)\]\((.*)\)`)
 )
 
 func parse(s string) string {
 	result := ""
+
 	isPre := false
+	isList := false
+
 	scanner := bufio.NewScanner(strings.NewReader(s))
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -32,6 +36,11 @@ func parse(s string) string {
 				result += line + "\n"
 			}
 			continue
+		}
+
+		if isList && !list.MatchString(line) {
+			result += "</ul>\n"
+			isList = false
 		}
 
 		switch {
@@ -48,11 +57,25 @@ func parse(s string) string {
 		case line == "```":
 			result += `<pre>`
 			isPre = true
+		case list.MatchString(line):
+			if !isList {
+				result += "<ul>\n"
+			}
+			result += `<li>` + line[2:] + `</li>`
+			isList = true
 		default:
 			result += line
 		}
 
 		result += "\n"
+	}
+
+	if isPre {
+		result += "</pre>\n"
+	}
+
+	if isList {
+		result += "</ul>\n"
 	}
 
 	return result
