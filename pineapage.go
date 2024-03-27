@@ -1,49 +1,39 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"io/fs"
-	"log"
 	"net/http"
-	"path/filepath"
-	"strings"
+	"os"
+	"regexp"
 )
 
-type Page struct {
-	Title string
-	Body  string
+var (
+	h3     = regexp.MustCompile(`(?m)^### (.*)`)
+	h2     = regexp.MustCompile(`(?m)^## (.*)`)
+	h1     = regexp.MustCompile(`(?m)^# (.*)`)
+	pre    = regexp.MustCompile("(?s)```(.*)```")
+	quote  = regexp.MustCompile(`(?m)^> (.*)`)
+	anchor = regexp.MustCompile(`\[(.*)\]\((.*)\)`)
+)
+
+func parse(s string) string {
+	s = h3.ReplaceAllString(s, `<h3>$1</h3>`)
+	s = h2.ReplaceAllString(s, `<h2>$1</h2>`)
+	s = h1.ReplaceAllString(s, `<h1>$1</h1>`)
+	s = pre.ReplaceAllString(s, `<pre>$1</pre>`)
+	s = quote.ReplaceAllString(s, `<blockquote>$1</blockquote>`)
+	s = anchor.ReplaceAllString(s, `<a href="$2">$1</a>`)
+	return s
+}
+
+func page(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Page: %s\n\n", r.URL.Path)
+	file, _ := os.ReadFile("page/index.md")
+	fmt.Fprint(w, parse(string(file)))
 }
 
 func main() {
-	dir := flag.String("d", ".", "directory to work on")
-	flag.Parse()
-
-	err := filepath.WalkDir(*dir, scan)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	http.HandleFunc("/", view)
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func scan(path string, file fs.DirEntry, err error) error {
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	if strings.HasPrefix(path, ".") {
-		return nil
-	}
-	fmt.Printf("%v %s\n", file.IsDir(), path)
-	return nil
-}
-
-func view(writer http.ResponseWriter, request *http.Request) {
-	p := &Page{
-		Title: "Test",
-		Body:  "Hi!",
-	}
-	fmt.Fprintf(writer, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+	fmt.Println("http://localhost:8080")
+	http.HandleFunc("/", page)
+	http.ListenAndServe(":8080", nil)
 }
