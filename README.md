@@ -9,5 +9,6 @@ It uses a subset of Markdown, with similar features to [Gemtext](https://geminip
 - [x] implement lists
 - [ ] display page correctly
 - [ ] scan multiple files
+- [ ] fix links
 - [ ] save files
 - [ ] variables
