@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/csv"
 	"fmt"
 	"net/http"
 	"os"
@@ -53,7 +54,13 @@ func parse(s string) string {
 		case quote.MatchString(line):
 			result += `<blockquote>` + line[2:] + `</blockquote>`
 		case anchor.MatchString(line):
-			result += anchor.ReplaceAllString(line, `<a href="$2">$1</a>`)
+			link := anchor.FindStringSubmatch(line)[2]
+			if link[len(link)-4:] == ".csv" {
+				file, _ := os.ReadFile("page/" + link)
+				result += table(string(file))
+			} else {
+				result += anchor.ReplaceAllString(line, `<a href="$2">$1</a>`)
+			}
 		case line == "```":
 			result += `<pre>`
 			isPre = true
@@ -79,6 +86,30 @@ func parse(s string) string {
 	}
 
 	return result
+}
+
+func table(s string) string {
+	r := csv.NewReader(strings.NewReader(s))
+	rows, err := r.ReadAll()
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	t := "<table>\n"
+	for i, row := range rows {
+		t += "<tr>\n"
+		for _, cell := range row {
+			if i == 0 {
+				t += "<th>" + cell + "</th>\n"
+			} else {
+				t += "<td>" + cell + "</td>\n"
+			}
+		}
+		t += "</tr>\n"
+	}
+	t += "</table>"
+	return t
 }
 
 func page(w http.ResponseWriter, r *http.Request) {
