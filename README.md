@@ -10,5 +10,9 @@ It uses a subset of Markdown, with similar features to [Gemtext](https://geminip
 - [ ] display page correctly
 - [ ] scan multiple files
 - [ ] fix links
+  - [x] display csv tables
+  - [ ] display images
+  - [ ] display media (video/audio)
+  - [ ] replace .md → .html
 - [ ] save files
 - [ ] variables
