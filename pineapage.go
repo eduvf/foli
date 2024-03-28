@@ -68,7 +68,7 @@ func parse(s string) string {
 			if !isList {
 				result += "<ul>\n"
 			}
-			result += `<li>` + line[2:] + `</li>`
+			result += `  <li>` + line[2:] + `</li>`
 			isList = true
 		default:
 			result += line
@@ -98,15 +98,15 @@ func table(s string) string {
 
 	t := "<table>\n"
 	for i, row := range rows {
-		t += "<tr>\n"
+		t += "  <tr>\n"
 		for _, cell := range row {
 			if i == 0 {
-				t += "<th>" + cell + "</th>\n"
+				t += "    <th>" + cell + "</th>\n"
 			} else {
-				t += "<td>" + cell + "</td>\n"
+				t += "    <td>" + cell + "</td>\n"
 			}
 		}
-		t += "</tr>\n"
+		t += "  </tr>\n"
 	}
 	t += "</table>"
 	return t
