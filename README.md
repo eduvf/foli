@@ -7,7 +7,7 @@ It uses a subset of Markdown, with similar features to [Gemtext](https://geminip
 ## Todo
 
 - [x] implement lists
-- [ ] display page correctly
+- [x] display page correctly
 - [ ] scan multiple files
 - [ ] fix links
   - [x] display csv tables
