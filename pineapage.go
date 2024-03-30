@@ -118,6 +118,7 @@ func table(s string, delim rune) string {
 }
 
 func page(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "Page: %s\n\n", r.URL.Path)
 	file, _ := os.ReadFile("page/index.md")
 	fmt.Fprint(w, parse(string(file)))
