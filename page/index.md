@@ -16,3 +16,4 @@ Bye bye!
 ```
 
 [](vowels.csv)
+[](kanji-emoji.tsv)

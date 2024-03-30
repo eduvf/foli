@@ -55,9 +55,13 @@ func parse(s string) string {
 			result += `<blockquote>` + line[2:] + `</blockquote>`
 		case anchor.MatchString(line):
 			link := anchor.FindStringSubmatch(line)[2]
-			if link[len(link)-4:] == ".csv" {
+			ext := link[len(link)-4:]
+			if ext == ".csv" {
 				file, _ := os.ReadFile("page/" + link)
-				result += table(string(file))
+				result += table(string(file), ',')
+			} else if ext == ".tsv" {
+				file, _ := os.ReadFile("page/" + link)
+				result += table(string(file), '\t')
 			} else {
 				result += anchor.ReplaceAllString(line, `<a href="$2">$1</a>`)
 			}
@@ -88,8 +92,9 @@ func parse(s string) string {
 	return result
 }
 
-func table(s string) string {
+func table(s string, delim rune) string {
 	r := csv.NewReader(strings.NewReader(s))
+	r.Comma = delim
 	rows, err := r.ReadAll()
 	if err != nil {
 		fmt.Println(err)
