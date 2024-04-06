@@ -125,7 +125,11 @@ func page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "<style>%s</style>", style)
 	fmt.Fprintf(w, "Page: %s\n\n", r.URL.Path)
-	file, _ := os.ReadFile("page/index.md")
+	path := "index.md"
+	if r.URL.Path != "/" {
+		path = r.URL.Path
+	}
+	file, _ := os.ReadFile("page/" + path)
 	fmt.Fprint(w, parse(string(file)))
 }
 
