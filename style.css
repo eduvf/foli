@@ -8,9 +8,27 @@ body {
   margin: 0 auto;
 }
 
+a {
+  color: inherit;
+}
+
+a:hover {
+  color: #eee;
+  background-color: #111;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #eee;
     background-color: #111;
   }
+
+  a:hover {
+    color: #111;
+    background-color: #eee;
+  }
+}
+
+table {
+  margin: 1rem 0;
 }
