@@ -67,7 +67,7 @@ func parse(s string) string {
 				file, _ := os.ReadFile("page/" + link)
 				result += table(string(file), '\t')
 			} else {
-				result += anchor.ReplaceAllString(line, `<a href="$2">$1</a>`)
+				result += anchor.ReplaceAllString(line, `<a href="$2">$1</a><br>`)
 			}
 		case line == "```":
 			result += `<pre>`
