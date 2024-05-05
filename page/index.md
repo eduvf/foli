@@ -2,6 +2,7 @@
 
 [fire](fire.md)
 [water](water.md)
+[kanji](kanji)
 
 ## Other stuff
 
