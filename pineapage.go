@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 )
@@ -121,10 +122,25 @@ func table(s string, delim rune) string {
 	return t
 }
 
+func toc(w http.ResponseWriter, pathname string) {
+	files, err := os.ReadDir("page/" + path.Dir(pathname))
+	if err != nil {
+		return
+	}
+
+	for _, file := range files {
+		link := path.Dir(pathname) + file.Name()
+		fmt.Fprintf(w, `<br><a href="%s">%s</a>`, link, file.Name())
+	}
+	fmt.Fprint(w, "<hr>")
+}
+
 func page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "<style>%s</style>", style)
 	fmt.Fprintf(w, "Page: %s\n\n", r.URL.Path)
+	toc(w, r.URL.Path)
+
 	path := "index.md"
 	if r.URL.Path != "/" {
 		path = r.URL.Path
