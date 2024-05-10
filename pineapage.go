@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	_ "embed"
 	"fmt"
 	"io/fs"
@@ -38,8 +39,8 @@ func warn(err error) bool {
 	return false
 }
 
-func parse(w http.ResponseWriter, md string) {
-	scan := bufio.NewScanner(strings.NewReader(md))
+func parse(w http.ResponseWriter, md []byte) {
+	scan := bufio.NewScanner(bytes.NewReader(md))
 	write := func(s string) { fmt.Fprint(w, s) }
 
 	for scan.Scan() {
@@ -77,10 +78,20 @@ func parse(w http.ResponseWriter, md string) {
 	}
 }
 
+func nav(w http.ResponseWriter) {
+	fmt.Fprint(w, "<nav>")
+	home, _ := os.ReadDir("page")
+	for _, entry := range home {
+		name := strings.TrimSuffix(entry.Name(), ".md")
+		fmt.Fprintf(w, ` <a href="/%s">%s</a>`, entry.Name(), name)
+	}
+	fmt.Fprint(w, "</nav>")
+}
+
 func ls(w http.ResponseWriter, dir []fs.DirEntry, path string) {
 	for _, entry := range dir {
 		name := entry.Name()
-		link := path + name
+		link := path + "/" + name
 		fmt.Fprintf(w, `<p><a href="%s">%s</a></p>`, link, name)
 	}
 }
@@ -88,12 +99,11 @@ func ls(w http.ResponseWriter, dir []fs.DirEntry, path string) {
 func page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "<style>%s</style>", style)
-	fmt.Fprintf(w, "<p>Page: %s</p>", r.URL.Path)
-	fmt.Fprint(w, "<hr>")
+	nav(w)
 
 	path := r.URL.Path
 	if path == "/" {
-		path = "index.md"
+		path = "home.md"
 	}
 
 	info, err := os.Stat("page/" + path)
@@ -111,7 +121,7 @@ func page(w http.ResponseWriter, r *http.Request) {
 		if warn(err) {
 			return
 		}
-		parse(w, string(file))
+		parse(w, file)
 	}
 }
 
