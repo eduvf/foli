@@ -1,20 +1,17 @@
-# Hi!
+# 🍍 pineapage
 
-[fire](fire.md)
-[water](water.md)
-[kanji](kanji)
+## heading
 
-## Other stuff
+### another heading
 
-* 1
-* 2
-* 3
+this is a paragraph
 
-> A quote
+* item 1
+* item 2
+* item 3
 
-```
-Bye bye!
-```
+> a quote by someone
 
-[](vowels.csv)
-[](kanji-emoji.tsv)
+[Pineapple](https://en.wikipedia.org/wiki/Pineapple)
+
+![Pineapple and strawberries](https://tile.loc.gov/storage-services/service/pnp/stereo/1s40000/1s41000/1s41300/1s41362r.jpg)

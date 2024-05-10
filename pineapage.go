@@ -15,7 +15,7 @@ import (
 var style string
 
 //go:embed favicon.ico
-var ico []byte
+var favicon []byte
 
 var (
 	h3     = regexp.MustCompile(`^### (.*)`)
@@ -154,13 +154,12 @@ func page(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, parse(string(file)))
 }
 
-func favicon(w http.ResponseWriter, r *http.Request) {
-	w.Write(ico)
-}
-
 func main() {
 	fmt.Println("http://localhost:8080")
 	http.HandleFunc("/", page)
-	http.HandleFunc("/favicon.ico", favicon)
+	http.HandleFunc("/favicon.ico",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Write(favicon)
+		})
 	http.ListenAndServe(":8080", nil)
 }
