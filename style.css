@@ -24,6 +24,15 @@ body {
   margin: 0 auto;
 }
 
-table {
-  margin: 1rem 0;
+blockquote {
+  border: 1px solid;
+  padding: 1em;
+}
+
+img {
+  width: 100%;
+}
+
+figcaption {
+  text-align: center;
 }
