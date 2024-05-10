@@ -80,7 +80,10 @@ func parse(w http.ResponseWriter, md []byte) {
 
 func nav(w http.ResponseWriter) {
 	fmt.Fprint(w, "<nav>")
-	home, _ := os.ReadDir("page")
+	home, err := os.ReadDir("page")
+	if warn(err) {
+		return
+	}
 	for _, entry := range home {
 		name := strings.TrimSuffix(entry.Name(), ".md")
 		fmt.Fprintf(w, ` <a href="/%s">%s</a>`, entry.Name(), name)
