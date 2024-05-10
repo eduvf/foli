@@ -4,6 +4,7 @@ import (
 	"bufio"
 	_ "embed"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"regexp"
@@ -28,6 +29,12 @@ var (
 
 const GREEN = "\x1b[32m"
 const YELLOW = "\x1b[33m"
+
+func warn(err error) {
+	if err != nil {
+		fmt.Print(YELLOW + err.Error())
+	}
+}
 
 func parse(s string) string {
 	res := ""
@@ -70,6 +77,14 @@ func parse(s string) string {
 	return res
 }
 
+func ls(w http.ResponseWriter, dir []fs.DirEntry, path string) {
+	for _, entry := range dir {
+		name := entry.Name()
+		link := path + name
+		fmt.Fprintf(w, `<p><a href="%s">%s</a></p>`, link, name)
+	}
+}
+
 func page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "<style>%s</style>", style)
@@ -81,11 +96,17 @@ func page(w http.ResponseWriter, r *http.Request) {
 		path = "index.md"
 	}
 
-	file, err := os.ReadFile("page/" + path)
-	if err != nil {
-		fmt.Print(YELLOW + err.Error())
+	info, err := os.Stat("page/" + path)
+	if info.IsDir() {
+		dir, err := os.ReadDir("page/" + path)
+		warn(err)
+		ls(w, dir, path)
+	} else {
+		file, err := os.ReadFile("page/" + path)
+		warn(err)
+		fmt.Fprint(w, parse(string(file)))
 	}
-	fmt.Fprint(w, parse(string(file)))
+	warn(err)
 }
 
 func main() {
