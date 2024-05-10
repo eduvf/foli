@@ -36,45 +36,43 @@ func warn(err error) {
 	}
 }
 
-func parse(s string) string {
-	res := ""
-	scan := bufio.NewScanner(strings.NewReader(s))
+func parse(w http.ResponseWriter, md string) {
+	scan := bufio.NewScanner(strings.NewReader(md))
+	write := func(s string) { fmt.Fprint(w, s) }
 
 	for scan.Scan() {
 		line := scan.Text()
 
 		switch {
 		case h3.MatchString(line):
-			res += `<h3>` + line[4:] + `</h3>`
+			write(`<h3>` + line[4:] + `</h3>`)
 		case h2.MatchString(line):
-			res += `<h2>` + line[3:] + `</h2>`
+			write(`<h2>` + line[3:] + `</h2>`)
 		case h1.MatchString(line):
-			res += `<h1>` + line[2:] + `</h1>`
+			write(`<h1>` + line[2:] + `</h1>`)
 		case quote.MatchString(line):
-			res += `<blockquote>` + line[2:] + `</blockquote>`
+			write(`<blockquote>` + line[2:] + `</blockquote>`)
 		case anchor.MatchString(line):
-			res += anchor.ReplaceAllString(line, `<p><a href="$2">$1</a></p>`)
+			write(anchor.ReplaceAllString(line, `<p><a href="$2">$1</a></p>`))
 		case img.MatchString(line):
-			res += img.ReplaceAllString(line, `<figure><img alt="$1" src="$2"><figcaption>$1</figcaption></figure>`)
+			write(img.ReplaceAllString(line, `<figure><img alt="$1" src="$2"><figcaption>$1</figcaption></figure>`))
 		case line == "```":
-			res += `<pre>`
+			write(`<pre>`)
 			for scan.Scan() && scan.Text() != "```" {
-				res += scan.Text() + "\n"
+				write(scan.Text() + "\n")
 			}
-			res += `</pre>`
+			write(`</pre>`)
 		case list.MatchString(line):
-			res += "<ul>"
-			res += "<li>" + line[2:] + "</li>"
+			write("<ul>")
+			write("<li>" + line[2:] + "</li>")
 			for scan.Scan() && list.MatchString(scan.Text()) {
-				res += "<li>" + scan.Text()[2:] + "</li>"
+				write("<li>" + scan.Text()[2:] + "</li>")
 			}
-			res += "</ul>"
+			write("</ul>")
 		default:
-			res += line + "\n"
+			write(line + "\n")
 		}
 	}
-
-	return res
 }
 
 func ls(w http.ResponseWriter, dir []fs.DirEntry, path string) {
@@ -104,7 +102,7 @@ func page(w http.ResponseWriter, r *http.Request) {
 	} else {
 		file, err := os.ReadFile("page/" + path)
 		warn(err)
-		fmt.Fprint(w, parse(string(file)))
+		parse(w, string(file))
 	}
 	warn(err)
 }
