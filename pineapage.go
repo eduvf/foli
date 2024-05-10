@@ -23,6 +23,7 @@ var (
 	list   = regexp.MustCompile(`^\* (.*)`)
 	quote  = regexp.MustCompile(`^> (.*)`)
 	anchor = regexp.MustCompile(`^\[(.*)\]\((.*)\)`)
+	img    = regexp.MustCompile(`^!\[(.*)\]\((.*)\)`)
 )
 
 const GREEN = "\x1b[32m"
@@ -46,6 +47,8 @@ func parse(s string) string {
 			res += `<blockquote>` + line[2:] + `</blockquote>`
 		case anchor.MatchString(line):
 			res += anchor.ReplaceAllString(line, `<p><a href="$2">$1</a></p>`)
+		case img.MatchString(line):
+			res += img.ReplaceAllString(line, `<figure><img alt="$1" src="$2"><figcaption>$1</figcaption></figure>`)
 		case line == "```":
 			res += `<pre>`
 			for scan.Scan() && scan.Text() != "```" {
