@@ -30,10 +30,12 @@ var (
 const GREEN = "\x1b[32m"
 const YELLOW = "\x1b[33m"
 
-func warn(err error) {
+func warn(err error) bool {
 	if err != nil {
-		fmt.Print(YELLOW + err.Error())
+		fmt.Println(YELLOW + err.Error())
+		return true
 	}
+	return false
 }
 
 func parse(w http.ResponseWriter, md string) {
@@ -86,7 +88,7 @@ func ls(w http.ResponseWriter, dir []fs.DirEntry, path string) {
 func page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "<style>%s</style>", style)
-	fmt.Fprintf(w, "Page: %s\n\n", r.URL.Path)
+	fmt.Fprintf(w, "<p>Page: %s</p>", r.URL.Path)
 	fmt.Fprint(w, "<hr>")
 
 	path := r.URL.Path
@@ -95,16 +97,22 @@ func page(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info, err := os.Stat("page/" + path)
+	if warn(err) {
+		return
+	}
 	if info.IsDir() {
 		dir, err := os.ReadDir("page/" + path)
-		warn(err)
+		if warn(err) {
+			return
+		}
 		ls(w, dir, path)
 	} else {
 		file, err := os.ReadFile("page/" + path)
-		warn(err)
+		if warn(err) {
+			return
+		}
 		parse(w, string(file))
 	}
-	warn(err)
 }
 
 func main() {
