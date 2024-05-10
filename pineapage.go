@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	_ "embed"
-	"encoding/csv"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,115 +25,46 @@ var (
 	anchor = regexp.MustCompile(`^\[(.*)\]\((.*)\)`)
 )
 
+const GREEN = "\x1b[32m"
+const YELLOW = "\x1b[33m"
+
 func parse(s string) string {
-	result := ""
+	res := ""
+	scan := bufio.NewScanner(strings.NewReader(s))
 
-	isPre := false
-	isList := false
-
-	scanner := bufio.NewScanner(strings.NewReader(s))
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		if isPre {
-			if line == "```" {
-				isPre = false
-				result += "</pre>\n"
-			} else {
-				result += line + "\n"
-			}
-			continue
-		}
-
-		if isList && !list.MatchString(line) {
-			result += "</ul>\n"
-			isList = false
-		}
+	for scan.Scan() {
+		line := scan.Text()
 
 		switch {
 		case h3.MatchString(line):
-			result += `<h3>` + line[4:] + `</h3>`
+			res += `<h3>` + line[4:] + `</h3>`
 		case h2.MatchString(line):
-			result += `<h2>` + line[3:] + `</h2>`
+			res += `<h2>` + line[3:] + `</h2>`
 		case h1.MatchString(line):
-			result += `<h1>` + line[2:] + `</h1>`
+			res += `<h1>` + line[2:] + `</h1>`
 		case quote.MatchString(line):
-			result += `<blockquote>` + line[2:] + `</blockquote>`
+			res += `<blockquote>` + line[2:] + `</blockquote>`
 		case anchor.MatchString(line):
-			link := anchor.FindStringSubmatch(line)[2]
-			ext := link[len(link)-4:]
-			if ext == ".csv" {
-				file, _ := os.ReadFile("page/" + link)
-				result += table(string(file), ',')
-			} else if ext == ".tsv" {
-				file, _ := os.ReadFile("page/" + link)
-				result += table(string(file), '\t')
-			} else {
-				result += anchor.ReplaceAllString(line, `<a href="$2">$1</a><br>`)
-			}
+			res += anchor.ReplaceAllString(line, `<p><a href="$2">$1</a></p>`)
 		case line == "```":
-			result += `<pre>`
-			isPre = true
+			res += `<pre>`
+			for scan.Scan() && scan.Text() != "```" {
+				res += scan.Text() + "\n"
+			}
+			res += `</pre>`
 		case list.MatchString(line):
-			if !isList {
-				result += "<ul>\n"
+			res += "<ul>"
+			res += "<li>" + line[2:] + "</li>"
+			for scan.Scan() && list.MatchString(scan.Text()) {
+				res += "<li>" + scan.Text()[2:] + "</li>"
 			}
-			result += `  <li>` + line[2:] + `</li>`
-			isList = true
+			res += "</ul>"
 		default:
-			result += line
+			res += line + "\n"
 		}
-
-		result += "\n"
 	}
 
-	if isPre {
-		result += "</pre>\n"
-	}
-
-	if isList {
-		result += "</ul>\n"
-	}
-
-	return result
-}
-
-func table(s string, delim rune) string {
-	r := csv.NewReader(strings.NewReader(s))
-	r.Comma = delim
-	rows, err := r.ReadAll()
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-
-	t := "<table>\n"
-	for i, row := range rows {
-		t += "  <tr>\n"
-		for _, cell := range row {
-			if i == 0 {
-				t += "    <th>" + cell + "</th>\n"
-			} else {
-				t += "    <td>" + cell + "</td>\n"
-			}
-		}
-		t += "  </tr>\n"
-	}
-	t += "</table>"
-	return t
-}
-
-func toc(w http.ResponseWriter, path string) {
-	files, err := os.ReadDir("page/" + path)
-	if err != nil {
-		return
-	}
-
-	for _, file := range files {
-		link := path + "/" + file.Name()
-		fmt.Fprintf(w, `<br><a href="%s">%s</a>`, link, file.Name())
-	}
-	fmt.Fprint(w, "<hr>")
+	return res
 }
 
 func page(w http.ResponseWriter, r *http.Request) {
@@ -142,20 +72,20 @@ func page(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "<style>%s</style>", style)
 	fmt.Fprintf(w, "Page: %s\n\n", r.URL.Path)
 
-	path := "index.md"
-	if r.URL.Path != "/" {
-		path = r.URL.Path
+	path := r.URL.Path
+	if path == "/" {
+		path = "index.md"
 	}
-	info, _ := os.Stat("page/" + path)
-	if info.IsDir() {
-		toc(w, r.URL.Path)
+
+	file, err := os.ReadFile("page/" + path)
+	if err != nil {
+		fmt.Print(YELLOW + err.Error())
 	}
-	file, _ := os.ReadFile("page/" + path)
 	fmt.Fprint(w, parse(string(file)))
 }
 
 func main() {
-	fmt.Println("http://localhost:8080")
+	fmt.Println(GREEN + "http://localhost:8080")
 	http.HandleFunc("/", page)
 	http.HandleFunc("/favicon.ico",
 		func(w http.ResponseWriter, r *http.Request) {
