@@ -1,5 +1,6 @@
 :root {
   font-family: system-ui;
+  font-size: 14pt;
 
   --bg: #eee;
   --fg: #111;
@@ -18,8 +19,8 @@
 }
 
 body {
-  max-width: 50em;
-  padding: 2em;
+  max-width: 40em;
+  padding: 1em;
   margin: 0 auto;
 }
 
