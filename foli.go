@@ -16,11 +16,6 @@ import (
 var style string
 
 var (
-	h3     = regexp.MustCompile(`^### (.*)`)
-	h2     = regexp.MustCompile(`^## (.*)`)
-	h1     = regexp.MustCompile(`^# (.*)`)
-	list   = regexp.MustCompile(`^\* (.*)`)
-	quote  = regexp.MustCompile(`^> (.*)`)
 	anchor = regexp.MustCompile(`^\[(.*)\]\((.*)\)`)
 	img    = regexp.MustCompile(`^!\[(.*)\]\((.*)\)`)
 )
@@ -44,13 +39,13 @@ func parse(w http.ResponseWriter, md []byte) {
 		line := scan.Text()
 
 		switch {
-		case h3.MatchString(line):
+		case strings.HasPrefix(line, "### "):
 			write(`<h3>` + line[4:] + `</h3>`)
-		case h2.MatchString(line):
+		case strings.HasPrefix(line, "## "):
 			write(`<h2>` + line[3:] + `</h2>`)
-		case h1.MatchString(line):
+		case strings.HasPrefix(line, "# "):
 			write(`<h1>` + line[2:] + `</h1>`)
-		case quote.MatchString(line):
+		case strings.HasPrefix(line, "> "):
 			write(`<blockquote>` + line[2:] + `</blockquote>`)
 		case anchor.MatchString(line):
 			write(anchor.ReplaceAllString(line, `<p><a href="$2">$1</a></p>`))
@@ -62,10 +57,10 @@ func parse(w http.ResponseWriter, md []byte) {
 				write(scan.Text() + "\n")
 			}
 			write(`</pre>`)
-		case list.MatchString(line):
+		case strings.HasPrefix(line, "* "):
 			write("<ul>")
 			write("<li>" + line[2:] + "</li>")
-			for scan.Scan() && list.MatchString(scan.Text()) {
+			for scan.Scan() && strings.HasPrefix(scan.Text(), "* ") {
 				write("<li>" + scan.Text()[2:] + "</li>")
 			}
 			write("</ul>")
