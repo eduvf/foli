@@ -1,4 +1,4 @@
-# 🍍 pineapage
+# 🍂 foli
 
 A minimal static site generator written in Go
 
