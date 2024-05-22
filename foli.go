@@ -15,6 +15,9 @@ import (
 //go:embed style.css
 var style string
 
+//go:embed icon.js
+var icon string
+
 var (
 	anchor = regexp.MustCompile(`^\[(.*)\]\((.*)\)`)
 	img    = regexp.MustCompile(`^!\[(.*)\]\((.*)\)`)
@@ -94,6 +97,7 @@ func ls(w http.ResponseWriter, dir []fs.DirEntry, path string) {
 func page(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "<style>%s</style>", style)
+	fmt.Fprintf(w, "<script>%s icon('🍂')</script>", icon)
 	nav(w)
 
 	path := r.URL.Path
