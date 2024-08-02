@@ -103,13 +103,17 @@ func page(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	if path == "/" {
 		path = "home.md"
-	} else {
+	}
+
+	if strings.Count(path, "/") > 1 {
+		fmt.Fprint(w, "<nav>")
 		for i, ch := range path {
 			if ch == '/' {
 				name := path[:i]
 				fmt.Fprintf(w, `<a href="%s">%s</a>`, name, name)
 			}
 		}
+		fmt.Fprint(w, "</nav>")
 	}
 
 	info, err := os.Stat("page/" + path)
