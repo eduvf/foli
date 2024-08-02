@@ -80,8 +80,11 @@ func nav(w http.ResponseWriter) {
 		return
 	}
 	for _, entry := range home {
-		name := strings.TrimSuffix(entry.Name(), ".md")
-		fmt.Fprintf(w, ` <a href="/%s">%s</a>`, entry.Name(), name)
+		name := entry.Name()
+		if strings.HasSuffix(name, ".md") || entry.IsDir() {
+			fmt.Fprintf(w, `<a href="/%s">%s</a>`, name,
+				strings.TrimSuffix(name, ".md"))
+		}
 	}
 	fmt.Fprint(w, "</nav>")
 }
