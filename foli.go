@@ -108,7 +108,7 @@ func page(w http.ResponseWriter, r *http.Request) {
 	if strings.Count(path, "/") > 1 {
 		fmt.Fprint(w, "<nav>")
 		for i, ch := range path {
-			if ch == '/' {
+			if ch == '/' && i > 0 {
 				name := path[:i]
 				fmt.Fprintf(w, `<a href="%s">%s</a>`, name, name)
 			}
